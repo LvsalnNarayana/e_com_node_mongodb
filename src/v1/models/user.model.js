@@ -2,49 +2,77 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 const { Schema } = mongoose;
 
-const UserSchema = new Schema({
-  primary_email_address_id: {
-    type: Schema.Types.ObjectId,
-    ref: "EmailAddress",
+const UserSchema = new Schema(
+  {
+    primary_email_address_id: {
+      type: Schema.Types.ObjectId,
+      ref: "EmailAddress",
+    },
+    primary_phone_number_id: {
+      type: Schema.Types.ObjectId,
+      ref: "PhoneNumber",
+    },
+    username: {
+      type: String,
+      unique: true,
+    },
+    first_name: { type: String, required: true },
+    last_name: { type: String, required: true },
+    profile_image_url: String,
+    image_url: String,
+    password: String,
+    addresses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Address",
+      },
+    ],
+    has_image: { type: Boolean, default: false },
+    email_addresses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Email",
+      },
+    ],
+    phone_numbers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Phone",
+      },
+    ],
+    password_enabled: { type: Boolean, default: false },
+    two_factor_enabled: { type: Boolean, default: false },
+    last_sign_in_at: Number,
+    banned: { type: Boolean, default: false },
+    locked: { type: Boolean, default: false },
+    verification_attempts_remaining: { type: Number, default: 3 },
+    delete_self_enabled: { type: Boolean, default: false },
+    last_active_at: Number,
   },
-  primary_phone_number_id: { type: Schema.Types.ObjectId, ref: "PhoneNumber" },
-  username: {
-    type: String,
-    unique: true,
-  },
-  first_name: { type: String, required: true },
-  last_name: { type: String, required: true },
-  profile_image_url: String,
-  image_url: String,
-  password: String,
-  addresses: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Address",
+  {
+    toObject: {
+      transform: function (doc, ret) {
+        ret.id = ret?._id?.toString();
+        delete ret?._id;
+        delete ret?.__v;
+        return ret;
+      },
+      virtuals: true,
+      getters: true,
     },
-  ],
-  has_image: { type: Boolean, default: false },
-  email_addresses: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Email",
+    toJSON: {
+      transform: function (doc, ret) {
+        ret.id = ret?._id?.toString();
+        delete ret?._id;
+        delete ret?.__v;
+        return ret;
+      },
+      virtuals: true,
+      getters: true,
     },
-  ],
-  phone_numbers: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Phone",
-    },
-  ],
-  password_enabled: { type: Boolean, default: false },
-  two_factor_enabled: { type: Boolean, default: false },
-  last_sign_in_at: Number,
-  banned: { type: Boolean, default: false },
-  locked: { type: Boolean, default: false },
-  verification_attempts_remaining: { type: Number, default: 3 },
-  delete_self_enabled: { type: Boolean, default: false },
-  last_active_at: Number,
-});
+    timestamps: true,
+  }
+);
 
 UserSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
